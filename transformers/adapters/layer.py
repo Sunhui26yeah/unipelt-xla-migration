@@ -174,7 +174,9 @@ class AdapterLayerBaseMixin(ABC):
                                        return_gate_output=self.config.add_adapter_gate)
                 if len(output) == 4:
                     hidden_states, _, up, gate_output = output
-                    self.gate_output_d[f'adapter-{self.layer_idx}'].append(gate_output.detach().squeeze().cpu().numpy())
+                    # write-only gate log; a host copy on XLA forces a graph execution per gate
+                    if gate_output.device.type != 'xla':
+                        self.gate_output_d[f'adapter-{self.layer_idx}'].append(gate_output.detach().squeeze().cpu().numpy())
                 else:
                     hidden_states, _, up = output
                     # as this stack might be part of a fusion block, return the adapter up-projection output here
