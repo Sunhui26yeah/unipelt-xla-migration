@@ -320,7 +320,9 @@ class BertSelfAttention(nn.Module):
                     gate = torch.mean(torch.sigmoid(self.prefix_gate(hidden_states)), dim=1).view(-1, 1, 1, 1)
                 prefix_embed_k = prefix_embed_k * gate  # (bsz, num_heads=12, prefix_len, head_dim=64)
                 prefix_embed_v = prefix_embed_v * gate
-                self.prefix_gate_output_l.append(gate.detach().squeeze().cpu().numpy())
+                # write-only gate log; a host copy on XLA forces a graph execution per gate
+                if gate.device.type != 'xla':
+                    self.prefix_gate_output_l.append(gate.detach().squeeze().cpu().numpy())
             key_layer = torch.cat([prefix_embed_k, key_layer], dim=2)
             value_layer = torch.cat([prefix_embed_v, value_layer], dim=2)
             if attention_mask is not None:
