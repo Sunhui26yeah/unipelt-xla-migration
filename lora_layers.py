@@ -167,7 +167,9 @@ class LoRA_Linear(nn.Linear, LoRALayer):
                     if not self.add_central_gate:
                         self.scaling = torch.sigmoid(self.lora_gate(x))
                         self.scaling = torch.mean(self.scaling, dim=1).unsqueeze(-1)
-                    self.lora_gate_output_l.append(self.scaling.detach().squeeze().cpu().numpy())
+                    # write-only gate log; a host copy on XLA forces a graph execution per gate
+                    if self.scaling.device.type != 'xla':
+                        self.lora_gate_output_l.append(self.scaling.detach().squeeze().cpu().numpy())
                 result += (self.lora_dropout(x) @ self.lora_A.T @ self.lora_B.T) * self.scaling
             return result
         else:
