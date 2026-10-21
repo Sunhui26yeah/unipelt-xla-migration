@@ -12,6 +12,7 @@ import logging
 import os
 import pickle
 import random
+import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -726,5 +727,7 @@ def _mp_fn(index):
 
 
 if __name__ == "__main__":
-    choose_gpu(min_gpu_memory=5000, retry=True)
+    # the GPU picker needs nvidia-smi; on a TPU VM the device comes from PJRT instead
+    if shutil.which("nvidia-smi") is not None:
+        choose_gpu(min_gpu_memory=5000, retry=True)
     main()

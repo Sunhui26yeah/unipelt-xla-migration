@@ -126,6 +126,7 @@ if is_datasets_available():
 
 if is_torch_tpu_available():
     import torch_xla.core.xla_model as xm
+    import torch_xla.runtime as xr
     import torch_xla.debug.metrics as met
     import torch_xla.distributed.parallel_loader as pl
 
@@ -599,7 +600,7 @@ class Trainer:
 
     def _get_eval_sampler(self, eval_dataset: Dataset) -> Optional[torch.utils.data.sampler.Sampler]:
         if is_torch_tpu_available():
-            return SequentialDistributedSampler(eval_dataset, num_replicas=xm.xrt_world_size(), rank=xm.get_ordinal())
+            return SequentialDistributedSampler(eval_dataset, num_replicas=xr.world_size(), rank=xr.global_ordinal())
         elif is_sagemaker_mp_enabled():
             return SequentialDistributedSampler(
                 eval_dataset,
@@ -1040,7 +1041,7 @@ class Trainer:
 
         # Train!
         if is_torch_tpu_available():
-            world_size = xm.xrt_world_size()
+            world_size = xr.world_size()
         elif self.args.local_rank != -1:
             world_size = dist.get_world_size()
         else:

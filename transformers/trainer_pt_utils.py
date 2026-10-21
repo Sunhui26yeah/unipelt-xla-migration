@@ -44,6 +44,7 @@ else:
 
 if is_torch_tpu_available():
     import torch_xla.core.xla_model as xm
+    import torch_xla.runtime as xr
 
 # this is used to suppress an undesired warning emitted by pytorch versions 1.4.2-1.7.0
 try:
@@ -264,9 +265,9 @@ class SequentialDistributedSampler(Sampler):
 
 
 def get_tpu_sampler(dataset: torch.utils.data.dataset.Dataset, bach_size: int):
-    if xm.xrt_world_size() <= 1:
+    if xr.world_size() <= 1:
         return RandomSampler(dataset)
-    return DistributedSampler(dataset, num_replicas=xm.xrt_world_size(), rank=xm.get_ordinal())
+    return DistributedSampler(dataset, num_replicas=xr.world_size(), rank=xr.global_ordinal())
 
 
 def nested_new_like(arrays, num_samples, padding_index=-100):
