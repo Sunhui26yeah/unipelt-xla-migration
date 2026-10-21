@@ -36,6 +36,7 @@ if is_torch_available():
 
 if is_torch_tpu_available():
     import torch_xla.core.xla_model as xm
+    import torch_xla.runtime as xr
 
 if is_sagemaker_dp_enabled():
     import smdistributed.dataparallel.torch.distributed as sm_dist
@@ -762,7 +763,7 @@ class TrainingArguments:
         The number of processes used in parallel.
         """
         if is_torch_tpu_available():
-            return xm.xrt_world_size()
+            return xr.world_size()
         elif is_sagemaker_mp_enabled():
             return smp.dp_size()
         elif is_sagemaker_dp_enabled():
@@ -778,7 +779,7 @@ class TrainingArguments:
         The number of processes used in parallel.
         """
         if is_torch_tpu_available():
-            return xm.get_ordinal()
+            return xr.global_ordinal()
         elif is_sagemaker_mp_enabled():
             return smp.dp_rank()
         elif is_sagemaker_dp_enabled():
